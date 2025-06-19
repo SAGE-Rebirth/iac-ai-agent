@@ -1,0 +1,78 @@
+---
+pull_repositories_task:
+  description: Use the GithubSearchTool to pull repositories from GitHub using {GitHub_repository_URLs}.
+  expected_output: Repositories successfully pulled and ready for analysis.
+  async_execution: false
+  agent: RepoAgent
+read_directories_task:
+  description: Use the DirectoryReadTool to read contents of directories within the
+    pulled repositories using {directory_paths}.
+  expected_output: Directory contents read and analyzed for further processing.
+  async_execution: false
+  agent: AnalyzerAgent
+  context:
+  - pull_repositories_task
+search_files_task:
+  description: Use the DirectorySearchTool to search for specific files needed for
+    Terraform and CI/CD pipeline generation.
+  expected_output: Specific files identified and ready for detailed analysis.
+  async_execution: false
+  agent: AnalyzerAgent
+  context:
+  - read_directories_task
+analyze_files_task:
+  description: Use the FileReadTool to analyze specific files for generating Terraform
+    and CI/CD pipelines.
+  expected_output: Detailed analysis of files completed, providing insights for Terraform
+    and pipeline creation.
+  async_execution: false
+  agent: AnalyzerAgent
+  context:
+  - search_files_task
+generate_terraform_files_task:
+  description: |
+    Create production-ready Terraform files based on the analysis results. Use the FileWriterTool 
+    to write the generated .tf files to disk. Ensure the files:
+      - Follow HashiCorp best practices and naming conventions
+      - Are modular and reusable
+      - Include comments and documentation for each resource
+      - Are formatted using 'terraform fmt'
+      - Pass 'terraform validate' with no errors
+      - Contain only secure, cloud-agnostic, and scalable configurations
+  expected_output: |
+    A set of clean, production-ready, and validated Terraform (.tf) files, formatted and ready 
+    for deployment. Include a summary of validation results. 
+    The files must be written to disk using the FileWriterTool.
+  async_execution: false
+  agent: TerraformAgent
+  context:
+  - analyze_files_task
+  output_file: output/main.tf
+
+create_ci_cd_pipelines_task:
+  description: |
+    Develop production-ready CI/CD pipeline YAML files based on the analysis results. 
+    Use the FileWriterTool to write the generated .yaml files to disk. Ensure the files:
+      - Follow best practices for the chosen CI/CD platform (e.g., GitHub Actions, GitLab CI, Azure Pipelines)
+      - Are modular, reusable, and well-documented
+      - Include comments explaining each step
+      - Are formatted and linted for YAML syntax correctness
+      - Pass the platform's pipeline validation (if available)
+      - Include secure handling of secrets and environment variables
+  expected_output: |
+    A set of clean, production-ready, and validated CI/CD pipeline YAML files, formatted 
+    and ready for integration. Include a summary of linting/validation results. The files must be written to disk using the FileWriterTool.
+  async_execution: false
+  agent: PipelineAgent
+  context:
+  - analyze_files_task
+  output_file: output/pipeline.yaml
+monitor_and_suggest_task:
+  description: Continuously monitor the process and suggest improvements using the
+    {manager_LLM_parameters}.
+  expected_output: Process monitored and suggestions for improvements provided.
+  async_execution: false
+  agent: ManagerLLMAgent
+  context:
+  - generate_terraform_files_task
+  - create_ci_cd_pipelines_task

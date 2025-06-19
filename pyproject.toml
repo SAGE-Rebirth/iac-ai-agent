@@ -1,0 +1,23 @@
+[project]
+name = "hierarchical_crew_automation_for_iac_with_llm_management"
+version = "0.1.0"
+description = "hierarchical_crew_automation_for_iac_with_llm_management using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai[tools]>=0.119.0,<1.0.0"
+]
+
+[project.scripts]
+hierarchical_crew_automation_for_iac_with_llm_management = "hierarchical_crew_automation_for_iac_with_llm_management.main:run"
+run_crew = "hierarchical_crew_automation_for_iac_with_llm_management.main:run"
+train = "hierarchical_crew_automation_for_iac_with_llm_management.main:train"
+replay = "hierarchical_crew_automation_for_iac_with_llm_management.main:replay"
+test = "hierarchical_crew_automation_for_iac_with_llm_management.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"
