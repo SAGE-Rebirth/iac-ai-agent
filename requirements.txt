@@ -1,3 +1,5 @@
 crewai
 crewai-tools
 pydantic
+gitpython
+PyGithub
