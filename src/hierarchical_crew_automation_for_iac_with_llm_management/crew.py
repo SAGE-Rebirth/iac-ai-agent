@@ -5,25 +5,43 @@ from crewai_tools import DirectoryReadTool
 from crewai_tools import DirectorySearchTool
 from crewai_tools import FileReadTool
 from crewai_tools import FileWriterTool
+from src.hierarchical_crew_automation_for_iac_with_llm_management.tools.git_clone_tool import GitCloneTool
 import os
+from dotenv import load_dotenv
 
-# LLM declaration for Gemini
-llm_gemini = LLM(
-    model="gemini/gemini-2.0-flash",
-    temperature=0.7,
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Load environment variables from .env file
+load_dotenv()
+
+# Debug prints for model and API key
+# print("[DEBUG] Using Hugging Face model:", "huggingface/meta-llama-3-8b-instruct")
+# print("[DEBUG] HUGGINGFACE_API_KEY present:", bool(os.getenv("HUGGINGFACE_API_KEY")))
+
+# LLM declaration for Gemini (per CrewAI docs: model="gemini/gemini-2.0-flash")
+llm_gemini = LLM(model="gemini/gemini-2.0-flash",temperature=0.7, api_key=os.getenv("GEMINI_API_KEY"), max_tokens=4096,)
+
+# Hugging Face LLM declaration
+# llm_hf = LLM(
+#     model="huggingface/meta-llama/Meta-Llama-3.1-8B-Instruct",  # You can change to any supported Hugging Face model
+#     temperature=0.7,
+#     api_key=os.getenv("HF_TOKEN"),
+# )
 
 @CrewBase
-class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
+class HierarchicalCrewAutomationForIacWithLlmManagement():
     """HierarchicalCrewAutomationForIacWithLlmManagement crew"""
 
     @agent
     def RepoAgent(self) -> Agent:
         return Agent(
             config=self.agents_config['RepoAgent'],
-            tools=[],
-            llm=llm_gemini,
+            tools=[
+                GitCloneTool(),
+                GithubSearchTool(
+                    gh_token=os.getenv("GITHUB_API_KEY"),
+                    content_types=["code", "repo", "pr", "issue"]
+                )
+            ],
+            llm=llm_gemini,  # Use Gemini LLM for RepoAgent
             allow_delegation=True,
         )
 
@@ -31,8 +49,12 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
     def AnalyzerAgent(self) -> Agent:
         return Agent(
             config=self.agents_config['AnalyzerAgent'],
-            tools=[],
-            llm=llm_gemini,
+            tools=[
+                DirectoryReadTool(),
+                DirectorySearchTool(),
+                FileReadTool()
+            ],
+            llm=llm_gemini,  # Use Gemini LLM for AnalyzerAgent
             allow_delegation=True,
         )
 
@@ -40,8 +62,8 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
     def TerraformAgent(self) -> Agent:
         return Agent(
             config=self.agents_config['TerraformAgent'],
-            tools=[],
-            llm=llm_gemini,
+            tools=[FileWriterTool()],
+            llm=llm_gemini,  # Use Gemini LLM for TerraformAgent
             allow_delegation=True,
         )
 
@@ -49,8 +71,8 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
     def PipelineAgent(self) -> Agent:
         return Agent(
             config=self.agents_config['PipelineAgent'],
-            tools=[],
-            llm=llm_gemini,
+            tools=[FileWriterTool()],
+            llm=llm_gemini,  # Use Gemini LLM for PipelineAgent
             allow_delegation=True,
         )
 
@@ -59,7 +81,7 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
         return Agent(
             config=self.agents_config['ManagerLLMAgent'],
             tools=[],
-            llm=llm_gemini,
+            llm=llm_gemini,  # Use Gemini LLM for ManagerLLMAgent
             allow_delegation=True,
         )
 
@@ -68,52 +90,42 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
     def pull_repositories_task(self) -> Task:
         return Task(
             config=self.tasks_config['pull_repositories_task'],
-            tools=[GithubSearchTool(
-                gh_token=os.getenv("GITHUB_API_KEY"),
-                content_types=["code", "repo", "pr", "issue"]
-            )],
         )
 
     @task
     def read_directories_task(self) -> Task:
         return Task(
             config=self.tasks_config['read_directories_task'],
-            tools=[DirectoryReadTool()],
         )
 
     @task
     def search_files_task(self) -> Task:
         return Task(
             config=self.tasks_config['search_files_task'],
-            tools=[DirectorySearchTool()],
         )
 
     @task
     def analyze_files_task(self) -> Task:
         return Task(
             config=self.tasks_config['analyze_files_task'],
-            tools=[FileReadTool()],
         )
 
     @task
     def generate_terraform_files_task(self) -> Task:
         return Task(
             config=self.tasks_config['generate_terraform_files_task'],
-            tools=[FileWriterTool()],
         )
 
     @task
     def create_ci_cd_pipelines_task(self) -> Task:
         return Task(
             config=self.tasks_config['create_ci_cd_pipelines_task'],
-            tools=[FileWriterTool()],
         )
 
     @task
     def monitor_and_suggest_task(self) -> Task:
         return Task(
             config=self.tasks_config['monitor_and_suggest_task'],
-            tools=[],
         )
 
 
@@ -133,5 +145,5 @@ class HierarchicalCrewAutomationForIacWithLlmManagementCrew():
             process=Process.hierarchical,
             verbose=True,
             manager_agent=self.ManagerLLMAgent(),
-            memory=True,  # Enable memory for the crew
+            # memory=True,  # Enable memory for the crew
         )
