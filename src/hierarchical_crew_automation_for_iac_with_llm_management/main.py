@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from hierarchical_crew_automation_for_iac_with_llm_management.crew import HierarchicalCrewAutomationForIacWithLlmManagementCrew
+from hierarchical_crew_automation_for_iac_with_llm_management.crew import HierarchicalCrewAutomationForIacWithLlmManagement
 
 # This main file is intended to be a way for your to run your
 # crew locally, so refrain from adding unnecessary logic into this file.
@@ -13,10 +13,11 @@ def run():
     """
     inputs = {
         'GitHub_repository_URLs': 'https://github.com/SAGE-Rebirth/LibraryManagementPyMySQL',
+        'destination_dir': './cloned_repos/LibraryManagementPyMySQL',
         'manager_LLM_parameters': 'devops priciples',
         'directory_paths': 'LibraryManagementPyMySQL/Library-Management-Python-MySQL'
     }
-    HierarchicalCrewAutomationForIacWithLlmManagementCrew().crew().kickoff(inputs=inputs)
+    HierarchicalCrewAutomationForIacWithLlmManagement().crew().kickoff(inputs=inputs)
 
 
 def train():
@@ -29,7 +30,7 @@ def train():
         'directory_paths': 'sample_value'
     }
     try:
-        HierarchicalCrewAutomationForIacWithLlmManagementCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+        HierarchicalCrewAutomationForIacWithLlmManagement().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
 
     except Exception as e:
         raise Exception(f"An error occurred while training the crew: {e}")
@@ -39,7 +40,7 @@ def replay():
     Replay the crew execution from a specific task.
     """
     try:
-        HierarchicalCrewAutomationForIacWithLlmManagementCrew().crew().replay(task_id=sys.argv[1])
+        HierarchicalCrewAutomationForIacWithLlmManagement().crew().replay(task_id=sys.argv[1])
 
     except Exception as e:
         raise Exception(f"An error occurred while replaying the crew: {e}")
@@ -54,7 +55,7 @@ def test():
         'directory_paths': 'sample_value'
     }
     try:
-        HierarchicalCrewAutomationForIacWithLlmManagementCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+        HierarchicalCrewAutomationForIacWithLlmManagement().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
 
     except Exception as e:
         raise Exception(f"An error occurred while testing the crew: {e}")
