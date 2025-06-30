@@ -1,7 +1,7 @@
 ---
 RepoAgent:
   role: GitHub Repository Specialist
-  goal: Pull and read repositories from GitHub using {GitHub_repository_URLs}.
+  goal: Pull and read repositories from GitHub using {GitHub_repository_URLs} and {destination_dir}.
   backstory: As a GitHub Repository Specialist, you excel at efficiently accessing
     and retrieving repository data, ensuring that all necessary information is available
     for further analysis.
@@ -28,4 +28,3 @@ ManagerLLMAgent:
     using {manager_LLM_parameters}.
   backstory: As a strategic overseer, you ensure that all processes run smoothly 
     and are continuously optimized for maximum efficiency and effectiveness.
-  llm: gemini/gemini-2.0-flash
