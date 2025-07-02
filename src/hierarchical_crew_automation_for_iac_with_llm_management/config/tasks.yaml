@@ -1,38 +1,56 @@
 ---
 pull_repositories_task:
-  description: Use the GithubSearchTool to pull repositories from GitHub using {GitHub_repository_URLs}.
-  expected_output: Repositories successfully pulled and ready for analysis.
+  description: |
+    Use the GitCloneTool to clone repositories from GitHub using {GitHub_repository_URLs} 
+    to a local directory specified by {destination_dir} for analysis.
+    Use the GithubSearchTool to search for code, repositories, PRs, or issues as needed 
+    to inform the cloning or analysis process.
+  expected_output: |
+    Repositories successfully cloned to the local workspace at {destination_dir} and 
+    relevant metadata or code search results retrieved for further analysis.
   async_execution: false
   agent: RepoAgent
+  inputs:
+    repo_url: "{GitHub_repository_URLs}"
+    dest_dir: "{destination_dir}"
+
 read_directories_task:
-  description: Use the DirectoryReadTool to read contents of directories within the
-    pulled repositories using {directory_paths}.
+  description: |
+    Use the DirectoryReadTool to read contents of directories within the cloned 
+    repositories using {directory_paths}.
+    This provides the AnalyzerAgent with the ability to inspect the structure and 
+    contents of the cloned repositories.
   expected_output: Directory contents read and analyzed for further processing.
   async_execution: false
   agent: AnalyzerAgent
   context:
   - pull_repositories_task
+
 search_files_task:
-  description: Use the DirectorySearchTool to search for specific files needed for
-    Terraform and CI/CD pipeline generation.
+  description: |
+    Use the DirectorySearchTool to search for specific files (e.g., Terraform, 
+    YAML, or configuration files) needed for Terraform and CI/CD pipeline generation 
+    within the cloned repositories.
   expected_output: Specific files identified and ready for detailed analysis.
   async_execution: false
   agent: AnalyzerAgent
   context:
   - read_directories_task
+
 analyze_files_task:
-  description: Use the FileReadTool to analyze specific files for generating Terraform
-    and CI/CD pipelines.
-  expected_output: Detailed analysis of files completed, providing insights for Terraform
-    and pipeline creation.
+  description: |
+    Use the FileReadTool to analyze specific files for generating Terraform and 
+    CI/CD pipelines. This step extracts the necessary information from the identified files.
+  expected_output: Detailed analysis of files completed, providing insights for Terraform and pipeline creation.
   async_execution: false
   agent: AnalyzerAgent
   context:
   - search_files_task
+
 generate_terraform_files_task:
   description: |
-    Create production-ready Terraform files based on the analysis results. Use the FileWriterTool 
-    to write the generated .tf files to disk. Ensure the files:
+    Create production-ready Terraform files based on the analysis results. 
+    Use the FileWriterTool to write the generated .tf files to disk. Ensure the files:
       - Follow HashiCorp best practices and naming conventions
       - Are modular and reusable
       - Include comments and documentation for each resource
@@ -40,8 +58,8 @@ generate_terraform_files_task:
       - Pass 'terraform validate' with no errors
       - Contain only secure, cloud-agnostic, and scalable configurations
   expected_output: |
-    A set of clean, production-ready, and validated Terraform (.tf) files, formatted and ready 
-    for deployment. Include a summary of validation results. 
+    A set of clean, production-ready, and validated Terraform (.tf) files, 
+    formatted and ready for deployment. Include a summary of validation results. 
     The files must be written to disk using the FileWriterTool.
   async_execution: false
   agent: TerraformAgent
@@ -61,15 +79,19 @@ create_ci_cd_pipelines_task:
       - Include secure handling of secrets and environment variables
   expected_output: |
     A set of clean, production-ready, and validated CI/CD pipeline YAML files, formatted 
-    and ready for integration. Include a summary of linting/validation results. The files must be written to disk using the FileWriterTool.
+    and ready for integration. Include a summary of linting/validation results. The files must be 
+    written to disk using the FileWriterTool.
   async_execution: false
   agent: PipelineAgent
   context:
   - analyze_files_task
   output_file: output/pipeline.yaml
+
 monitor_and_suggest_task:
-  description: Continuously monitor the process and suggest improvements using the
-    {manager_LLM_parameters}.
+  description: |
+    Continuously monitor the process and suggest improvements using the 
+    {manager_LLM_parameters}. The ManagerLLMAgent oversees the workflow and 
+    provides optimization suggestions based on the outputs of the Terraform and CI/CD tasks.
   expected_output: Process monitored and suggestions for improvements provided.
   async_execution: false
   agent: ManagerLLMAgent
